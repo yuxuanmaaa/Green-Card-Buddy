@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { fetchStatus, CaseStatus } from '../services/uscisService';
 import { setData, getData } from '../utils/storage';
 import StatusTracker from '../components/StatusTracker';
+import ReminderTest from '../components/ReminderTest';
 
 const STORAGE_KEY = 'userData';
 
@@ -157,6 +158,10 @@ const Popup: React.FC = () => {
             No case status available
           </p>
         )}
+      </div>
+
+      <div style={{ marginTop: '1.5rem' }}>
+        <ReminderTest />
       </div>
     </div>
   );
