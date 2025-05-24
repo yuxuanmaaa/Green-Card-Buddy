@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { fetchStatus, CaseStatus } from '../services/uscisService';
 import { setData, getData } from '../utils/storage';
+import StatusTracker from '../components/StatusTracker';
 
 const STORAGE_KEY = 'userData';
 
@@ -130,21 +131,24 @@ const Popup: React.FC = () => {
             {error}
           </p>
         ) : caseStatus ? (
-          <div>
-            <p style={{ 
-              color: '#2d3748',
-              fontSize: '0.875rem',
-              marginBottom: '0.25rem'
-            }}>
-              {caseStatus.status}
-            </p>
-            <p style={{ 
-              color: '#718096',
-              fontSize: '0.75rem'
-            }}>
-              Updated: {caseStatus.date}
-            </p>
-          </div>
+          <>
+            <StatusTracker status={caseStatus.status} />
+            <div>
+              <p style={{ 
+                color: '#2d3748',
+                fontSize: '0.875rem',
+                marginBottom: '0.25rem'
+              }}>
+                {caseStatus.status}
+              </p>
+              <p style={{ 
+                color: '#718096',
+                fontSize: '0.75rem'
+              }}>
+                Updated: {caseStatus.date}
+              </p>
+            </div>
+          </>
         ) : (
           <p style={{ 
             color: '#718096',

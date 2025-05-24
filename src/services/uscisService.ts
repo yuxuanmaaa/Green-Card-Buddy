@@ -22,7 +22,7 @@ export const fetchStatus = async (receiptNumber: string): Promise<CaseStatus> =>
 
   // 模拟数据
   return {
-    status: "Case Was Received",
+    status: "Biometrics Appointment Was Scheduled",
     date: new Date().toISOString().split('T')[0]
   };
 }; 
