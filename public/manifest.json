@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "GreenCard Buddy",
+  "version": "1.0.0",
+  "description": "Track your green card application status",
+  "action": {
+    "default_popup": "index.html"
+  },
+  "permissions": [
+    "storage",
+    "notifications"
+  ]
+} 
