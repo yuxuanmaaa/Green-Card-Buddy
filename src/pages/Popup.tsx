@@ -1,5 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { fetchStatus, CaseStatus } from '../services/uscisService';
+import { setData, getData } from '../utils/storage';
+
+const STORAGE_KEY = 'userData';
+
+type UserData = {
+  receiptNumber: string;
+};
 
 const Popup: React.FC = () => {
   const [receiptNumber, setReceiptNumber] = useState<string>('');
@@ -7,20 +14,35 @@ const Popup: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // 页面加载时自动读取编号并查询
+  useEffect(() => {
+    const saved = getData<UserData>(STORAGE_KEY);
+    if (saved?.receiptNumber) {
+      setReceiptNumber(saved.receiptNumber);
+      handleFetchStatus(saved.receiptNumber);
+    }
+  }, []);
+
+  // 查询状态并保存编号
+  const handleFetchStatus = async (number: string) => {
     setIsLoading(true);
     setError(null);
-
+    setCaseStatus(null);
     try {
-      const status = await fetchStatus(receiptNumber);
+      const status = await fetchStatus(number);
       setCaseStatus(status);
-    } catch (err) {
-      setError('Failed to fetch case status');
-      console.error('Error fetching case status:', err);
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch case status');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // 提交表单
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setData<UserData>(STORAGE_KEY, { receiptNumber });
+    handleFetchStatus(receiptNumber);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
