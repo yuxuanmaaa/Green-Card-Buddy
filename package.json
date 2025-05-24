@@ -1,6 +1,6 @@
 {
   "name": "greencard",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Chrome extension to track green card application status",
   "scripts": {
     "dev": "vite",
