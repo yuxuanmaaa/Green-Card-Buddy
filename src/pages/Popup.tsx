@@ -1,12 +1,26 @@
 import React, { useState } from 'react';
+import { fetchStatus, CaseStatus } from '../services/uscisService';
 
 const Popup: React.FC = () => {
   const [receiptNumber, setReceiptNumber] = useState<string>('');
+  const [caseStatus, setCaseStatus] = useState<CaseStatus | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // 使用 alert 来测试，因为 console.log 在 popup 中可能不可见
-    alert(`Receipt Number: ${receiptNumber}`);
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const status = await fetchStatus(receiptNumber);
+      setCaseStatus(status);
+    } catch (err) {
+      setError('Failed to fetch case status');
+      console.error('Error fetching case status:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,19 +72,20 @@ const Popup: React.FC = () => {
 
         <button
           type="submit"
+          disabled={isLoading}
           style={{
             width: '100%',
             padding: '0.5rem',
-            backgroundColor: '#4299e1',
+            backgroundColor: isLoading ? '#a0aec0' : '#4299e1',
             color: 'white',
             border: 'none',
             borderRadius: '0.375rem',
-            cursor: 'pointer',
+            cursor: isLoading ? 'not-allowed' : 'pointer',
             fontSize: '0.875rem',
             fontWeight: '500'
           }}
         >
-          Save & Check Status
+          {isLoading ? 'Loading...' : 'Save & Check Status'}
         </button>
       </form>
 
@@ -88,12 +103,34 @@ const Popup: React.FC = () => {
         }}>
           Current Status
         </h2>
-        <p style={{ 
-          color: '#718096',
-          fontSize: '0.875rem'
-        }}>
-          No case status available
-        </p>
+        {error ? (
+          <p style={{ color: '#e53e3e', fontSize: '0.875rem' }}>
+            {error}
+          </p>
+        ) : caseStatus ? (
+          <div>
+            <p style={{ 
+              color: '#2d3748',
+              fontSize: '0.875rem',
+              marginBottom: '0.25rem'
+            }}>
+              {caseStatus.status}
+            </p>
+            <p style={{ 
+              color: '#718096',
+              fontSize: '0.75rem'
+            }}>
+              Updated: {caseStatus.date}
+            </p>
+          </div>
+        ) : (
+          <p style={{ 
+            color: '#718096',
+            fontSize: '0.875rem'
+          }}>
+            No case status available
+          </p>
+        )}
       </div>
     </div>
   );
