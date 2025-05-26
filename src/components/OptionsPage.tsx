@@ -186,6 +186,7 @@ const OptionsPage: React.FC = () => {
       const result = await apiTest.runDailyTest();
       setTestRunResult(result ? '✅ Test completed successfully' : '❌ Test failed');
       await loadTestStatus();
+      await loadTestLogs();
     } catch (error) {
       console.error('Error running test:', error);
       setTestRunResult('❌ Test failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
