@@ -23,10 +23,13 @@ export const DEFAULT_SETTINGS: AppSettings = {
 
 export const MOCK_CASE_STATUSES = [
   'Case Was Received',
-  'Case Was Approved',
   'Biometrics Appointment Was Scheduled',
-  'Interview Was Scheduled',
+  'Employment Authorization Document Was Approved',
   'Request for Additional Evidence Was Sent',
   'Case Is Ready to Be Scheduled for An Interview',
-  'New Card Is Being Produced'
+  'Interview Was Scheduled',
+  'Case Was Approved',
+  'New Card Is Being Produced',
+  'Card Was Delivered',
+  'Case Was Denied'
 ]; 

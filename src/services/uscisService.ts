@@ -34,13 +34,15 @@ export const fetchStatus = async (receiptNumber: string): Promise<CaseStatus> =>
     };
   }
 
-  // 默认模拟数据（或真实API调用）
+  // 默认模拟数据（或真实API调用）- 基于婚姻绿卡申请流程
   const mockStatuses = [
     "Case Was Received",
-    "Biometrics Appointment Was Scheduled", 
+    "Biometrics Appointment Was Scheduled",
+    "Employment Authorization Document Was Approved",
     "Interview Was Scheduled",
     "Case Was Approved",
-    "New Card Is Being Produced"
+    "New Card Is Being Produced",
+    "Card Was Delivered"
   ];
 
   // 根据案件编号生成一致的状态（这样同一个编号总是返回相同状态）
