@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Reminder } from '../types/reminder';
-import { getReminders, getDaysRemaining, shouldShowReminder } from '../utils/reminderUtils';
+import { Reminder, ReminderData } from '../types/reminder';
+import { getReminders, getDaysRemaining, shouldShowReminder, deleteReminder } from '../utils/reminderUtils';
 import { getSettings } from '../utils/settingsUtils';
 
+interface ReminderWithType extends Reminder {
+  type: keyof ReminderData;
+}
+
 const ReminderList: React.FC = () => {
-  const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [reminders, setReminders] = useState<ReminderWithType[]>([]);
 
   const loadReminders = async () => {
     try {
@@ -20,10 +24,13 @@ const ReminderList: React.FC = () => {
       const now = new Date();
       now.setHours(0, 0, 0, 0);
 
-      // 过滤出所有未来的提醒
-      const futureReminders = Object.values(allReminders)
-        .filter(Boolean)
-        .filter(reminder => new Date(reminder.date) >= now)
+      // 过滤出所有未来的提醒，并保留类型信息
+      const futureReminders: ReminderWithType[] = Object.entries(allReminders)
+        .filter(([_, reminder]) => reminder && new Date(reminder.date) >= now)
+        .map(([type, reminder]) => ({
+          ...reminder!,
+          type: type as keyof ReminderData
+        }))
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
       console.log('Found future reminders for display:', futureReminders);
@@ -63,6 +70,20 @@ const ReminderList: React.FC = () => {
     return `${month}/${day}/${year}`;
   };
 
+  // 删除提醒
+  const handleDeleteReminder = async (type: keyof ReminderData) => {
+    if (confirm('Are you sure you want to delete this reminder?')) {
+      try {
+        await deleteReminder(type);
+        // 重新加载提醒列表
+        loadReminders();
+      } catch (error) {
+        console.error('Error deleting reminder:', error);
+        alert('Failed to delete reminder. Please try again.');
+      }
+    }
+  };
+
   return (
     <div style={{ 
       marginTop: '1rem',
@@ -88,6 +109,7 @@ const ReminderList: React.FC = () => {
               reminder={reminder}
               daysRemaining={daysRemaining}
               formatDate={formatDate}
+              onDelete={() => handleDeleteReminder(reminder.type)}
             />
           );
         })}
@@ -98,10 +120,11 @@ const ReminderList: React.FC = () => {
 
 // 分离出提醒卡片组件
 const ReminderCard: React.FC<{
-  reminder: Reminder;
+  reminder: ReminderWithType;
   daysRemaining: number;
   formatDate: (dateString: string) => string;
-}> = ({ reminder, daysRemaining, formatDate }) => {
+  onDelete: () => void;
+}> = ({ reminder, daysRemaining, formatDate, onDelete }) => {
   const [shouldShow, setShouldShow] = useState(false);
 
   useEffect(() => {
@@ -119,29 +142,55 @@ const ReminderCard: React.FC<{
         backgroundColor: '#edf2f7',
         marginBottom: '0.5rem',
         borderRadius: '0.25rem',
-        fontSize: '0.875rem'
+        fontSize: '0.875rem',
+        position: 'relative'
       }}
     >
-      <div style={{ fontWeight: '500', color: '#2d3748' }}>
-        {reminder.title}
-      </div>
-      <div style={{ color: '#4a5568' }}>
-        {formatDate(reminder.date)}
-        {shouldShow && (
-          <span style={{ 
-            marginLeft: '0.5rem',
-            color: daysRemaining === 0 ? '#e53e3e' : '#2f855a',
-            fontWeight: '500'
-          }}>
-            ({daysRemaining === 0 ? 'Today' : `${daysRemaining} days remaining`})
-          </span>
-        )}
-      </div>
-      {reminder.message && (
-        <div style={{ color: '#718096', fontSize: '0.75rem' }}>
-          {reminder.message}
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'flex-start' 
+      }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontWeight: '500', color: '#2d3748' }}>
+            {reminder.title}
+          </div>
+          <div style={{ color: '#4a5568' }}>
+            {formatDate(reminder.date)}
+            {shouldShow && (
+              <span style={{ 
+                marginLeft: '0.5rem',
+                color: daysRemaining === 0 ? '#e53e3e' : '#2f855a',
+                fontWeight: '500'
+              }}>
+                ({daysRemaining === 0 ? 'Today' : `${daysRemaining} days remaining`})
+              </span>
+            )}
+          </div>
+          {reminder.message && (
+            <div style={{ color: '#718096', fontSize: '0.75rem' }}>
+              {reminder.message}
+            </div>
+          )}
         </div>
-      )}
+        <button
+          onClick={onDelete}
+          style={{
+            marginLeft: '0.5rem',
+            padding: '0.25rem',
+            backgroundColor: '#fed7d7',
+            color: '#c53030',
+            border: 'none',
+            borderRadius: '0.25rem',
+            cursor: 'pointer',
+            fontSize: '0.75rem',
+            lineHeight: 1
+          }}
+          title="Delete reminder"
+        >
+          🗑️
+        </button>
+      </div>
     </div>
   );
 };

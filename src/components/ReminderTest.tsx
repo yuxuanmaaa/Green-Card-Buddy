@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { saveReminder } from '../utils/reminderUtils';
+import { saveReminder, deleteAllReminders } from '../utils/reminderUtils';
 import { Reminder } from '../types/reminder';
 
 const ReminderTest: React.FC = () => {
@@ -41,6 +41,18 @@ const ReminderTest: React.FC = () => {
     // 清空表单
     setSelectedDate('');
     setMessage('');
+  };
+
+  const handleClearAll = async () => {
+    if (confirm('Are you sure you want to delete ALL reminders? This action cannot be undone.')) {
+      try {
+        await deleteAllReminders();
+        alert('All reminders have been deleted successfully!');
+      } catch (error) {
+        console.error('Error deleting all reminders:', error);
+        alert('Failed to delete reminders. Please try again.');
+      }
+    }
   };
 
   return (
@@ -106,22 +118,41 @@ const ReminderTest: React.FC = () => {
         />
       </div>
 
-      <button
-        onClick={handleSave}
-        style={{
-          width: '100%',
-          padding: '0.5rem',
-          backgroundColor: '#48bb78',
-          color: 'white',
-          border: 'none',
-          borderRadius: '0.375rem',
-          cursor: 'pointer',
-          fontSize: '0.875rem',
-          fontWeight: '500'
-        }}
-      >
-        Save Reminder
-      </button>
+      <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <button
+          onClick={handleSave}
+          style={{
+            flex: 1,
+            padding: '0.5rem',
+            backgroundColor: '#48bb78',
+            color: 'white',
+            border: 'none',
+            borderRadius: '0.375rem',
+            cursor: 'pointer',
+            fontSize: '0.875rem',
+            fontWeight: '500'
+          }}
+        >
+          Save Reminder
+        </button>
+        
+        <button
+          onClick={handleClearAll}
+          style={{
+            padding: '0.5rem 0.75rem',
+            backgroundColor: '#e53e3e',
+            color: 'white',
+            border: 'none',
+            borderRadius: '0.375rem',
+            cursor: 'pointer',
+            fontSize: '0.875rem',
+            fontWeight: '500'
+          }}
+          title="Delete all reminders"
+        >
+          🗑️ Clear All
+        </button>
+      </div>
     </div>
   );
 };

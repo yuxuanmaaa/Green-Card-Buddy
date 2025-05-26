@@ -20,6 +20,22 @@ export const getReminders = async (): Promise<ReminderData> => {
   return data[STORAGE_KEY] || {};
 };
 
+// 删除单个提醒
+export const deleteReminder = async (type: keyof ReminderData): Promise<void> => {
+  const data = await chrome.storage.local.get(STORAGE_KEY);
+  const reminders: ReminderData = data[STORAGE_KEY] || {};
+  
+  // 删除指定类型的提醒
+  delete reminders[type];
+  
+  await chrome.storage.local.set({ [STORAGE_KEY]: reminders });
+};
+
+// 删除所有提醒数据
+export const deleteAllReminders = async (): Promise<void> => {
+  await chrome.storage.local.remove(STORAGE_KEY);
+};
+
 // 检查是否有即将到来的提醒（根据设置中的天数）
 export const checkUpcomingReminders = async (): Promise<Reminder[]> => {
   const settings = await getSettings();
