@@ -1,4 +1,5 @@
 import { Reminder, ReminderData } from '../types/reminder';
+import { getSettings } from './settingsUtils';
 
 const STORAGE_KEY = 'reminderData';
 
@@ -19,28 +20,38 @@ export const getReminders = async (): Promise<ReminderData> => {
   return data[STORAGE_KEY] || {};
 };
 
-// 检查是否有即将到来的提醒（3天内）
+// 检查是否有即将到来的提醒（根据设置中的天数）
 export const checkUpcomingReminders = async (): Promise<Reminder[]> => {
+  const settings = await getSettings();
+  
+  // 如果提醒被禁用，返回空数组
+  if (!settings.notificationsEnabled) {
+    return [];
+  }
+
   const reminders = await getReminders();
   const upcoming: Reminder[] = [];
   const now = new Date();
   now.setHours(0, 0, 0, 0);
-  const threeDaysLater = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+  
+  // 使用设置中的天数
+  const reminderDays = settings.reminderDaysBefore;
+  const reminderDate = new Date(now.getTime() + reminderDays * 24 * 60 * 60 * 1000);
 
-  console.log('Checking reminders between:', now.toISOString(), 'and', threeDaysLater.toISOString());
+  console.log(`Checking reminders between: ${now.toISOString()} and ${reminderDate.toISOString()} (${reminderDays} days)`);
 
   Object.values(reminders).forEach(reminder => {
     if (reminder) {
-      const reminderDate = new Date(reminder.date);
-      reminderDate.setHours(0, 0, 0, 0);
+      const targetDate = new Date(reminder.date);
+      targetDate.setHours(0, 0, 0, 0);
       
       console.log('Checking reminder:', {
-        date: reminderDate.toISOString(),
+        date: targetDate.toISOString(),
         title: reminder.title,
-        isUpcoming: reminderDate >= now && reminderDate <= threeDaysLater
+        isUpcoming: targetDate >= now && targetDate <= reminderDate
       });
 
-      if (reminderDate >= now && reminderDate <= threeDaysLater) {
+      if (targetDate >= now && targetDate <= reminderDate) {
         upcoming.push(reminder);
       }
     }
@@ -59,4 +70,10 @@ export const getDaysRemaining = (reminderDate: string): number => {
   
   const diffTime = date.getTime() - now.getTime();
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+};
+
+// 检查是否应该显示提醒（根据设置）
+export const shouldShowReminder = async (daysRemaining: number): Promise<boolean> => {
+  const settings = await getSettings();
+  return settings.notificationsEnabled && daysRemaining <= settings.reminderDaysBefore;
 }; 

@@ -10,6 +10,7 @@
     "default_popup": "index.html",
     "default_icon": "icon48.png"
   },
+  "options_page": "options.html",
   "permissions": [
     "storage",
     "notifications"

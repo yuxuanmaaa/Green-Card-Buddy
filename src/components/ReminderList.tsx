@@ -1,13 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { Reminder } from '../types/reminder';
-import { getReminders, getDaysRemaining } from '../utils/reminderUtils';
-import { sendReminder } from '../services/notificationService';
+import { getReminders, getDaysRemaining, shouldShowReminder } from '../utils/reminderUtils';
+import { getSettings } from '../utils/settingsUtils';
 
 const ReminderList: React.FC = () => {
   const [reminders, setReminders] = useState<Reminder[]>([]);
 
   const loadReminders = async () => {
     try {
+      const settings = await getSettings();
+      
+      // 如果应用内提醒被禁用，不显示任何内容
+      if (!settings.showInAppReminders) {
+        setReminders([]);
+        return;
+      }
+
       const allReminders = await getReminders();
       const now = new Date();
       now.setHours(0, 0, 0, 0);
@@ -18,19 +26,8 @@ const ReminderList: React.FC = () => {
         .filter(reminder => new Date(reminder.date) >= now)
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-      console.log('Found future reminders:', futureReminders);
+      console.log('Found future reminders for display:', futureReminders);
       setReminders(futureReminders);
-      
-      // 只对3天内的提醒发送通知
-      const threeDaysLater = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
-      const upcomingReminders = futureReminders.filter(
-        reminder => new Date(reminder.date) <= threeDaysLater
-      );
-
-      for (const reminder of upcomingReminders) {
-        console.log('Sending notification for:', reminder);
-        await sendReminder(reminder.title, reminder.message);
-      }
     } catch (error) {
       console.error('Error loading reminders:', error);
     }
@@ -41,7 +38,7 @@ const ReminderList: React.FC = () => {
 
     // 监听存储变化以实时更新提醒列表
     const handleStorageChange = (changes: { [key: string]: chrome.storage.StorageChange }) => {
-      if (changes['reminderData']) {
+      if (changes['reminderData'] || changes['appSettings']) {
         loadReminders();
       }
     };
@@ -84,43 +81,67 @@ const ReminderList: React.FC = () => {
       <div>
         {reminders.map((reminder, index) => {
           const daysRemaining = getDaysRemaining(reminder.date);
-          const isWithinThreeDays = daysRemaining <= 3;
           
           return (
-            <div
+            <ReminderCard 
               key={index}
-              style={{
-                padding: '0.5rem',
-                backgroundColor: '#edf2f7',
-                marginBottom: '0.5rem',
-                borderRadius: '0.25rem',
-                fontSize: '0.875rem'
-              }}
-            >
-              <div style={{ fontWeight: '500', color: '#2d3748' }}>
-                {reminder.title}
-              </div>
-              <div style={{ color: '#4a5568' }}>
-                {formatDate(reminder.date)}
-                {isWithinThreeDays && (
-                  <span style={{ 
-                    marginLeft: '0.5rem',
-                    color: daysRemaining === 0 ? '#e53e3e' : '#2f855a',
-                    fontWeight: '500'
-                  }}>
-                    ({daysRemaining === 0 ? 'Today' : `${daysRemaining} days remaining`})
-                  </span>
-                )}
-              </div>
-              {reminder.message && (
-                <div style={{ color: '#718096', fontSize: '0.75rem' }}>
-                  {reminder.message}
-                </div>
-              )}
-            </div>
+              reminder={reminder}
+              daysRemaining={daysRemaining}
+              formatDate={formatDate}
+            />
           );
         })}
       </div>
+    </div>
+  );
+};
+
+// 分离出提醒卡片组件
+const ReminderCard: React.FC<{
+  reminder: Reminder;
+  daysRemaining: number;
+  formatDate: (dateString: string) => string;
+}> = ({ reminder, daysRemaining, formatDate }) => {
+  const [shouldShow, setShouldShow] = useState(false);
+
+  useEffect(() => {
+    const checkShouldShow = async () => {
+      const show = await shouldShowReminder(daysRemaining);
+      setShouldShow(show);
+    };
+    checkShouldShow();
+  }, [daysRemaining]);
+
+  return (
+    <div
+      style={{
+        padding: '0.5rem',
+        backgroundColor: '#edf2f7',
+        marginBottom: '0.5rem',
+        borderRadius: '0.25rem',
+        fontSize: '0.875rem'
+      }}
+    >
+      <div style={{ fontWeight: '500', color: '#2d3748' }}>
+        {reminder.title}
+      </div>
+      <div style={{ color: '#4a5568' }}>
+        {formatDate(reminder.date)}
+        {shouldShow && (
+          <span style={{ 
+            marginLeft: '0.5rem',
+            color: daysRemaining === 0 ? '#e53e3e' : '#2f855a',
+            fontWeight: '500'
+          }}>
+            ({daysRemaining === 0 ? 'Today' : `${daysRemaining} days remaining`})
+          </span>
+        )}
+      </div>
+      {reminder.message && (
+        <div style={{ color: '#718096', fontSize: '0.75rem' }}>
+          {reminder.message}
+        </div>
+      )}
     </div>
   );
 };

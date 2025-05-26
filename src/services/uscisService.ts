@@ -1,3 +1,5 @@
+import { getSettings } from '../utils/settingsUtils';
+
 /**
  * USCIS 案件状态接口
  */
@@ -12,17 +14,40 @@ export interface CaseStatus {
  * @returns Promise<CaseStatus>
  */
 export const fetchStatus = async (receiptNumber: string): Promise<CaseStatus> => {
+  // 获取设置以检查调试模式
+  const settings = await getSettings();
+  
   // 模拟 API 延迟
   await new Promise(resolve => setTimeout(resolve, 500));
 
-  // 验证案件编号格式
-  if (!receiptNumber.match(/^[A-Z]{3}\d{10}$/)) {
+  // 验证案件编号格式（在调试模式下可以放宽）
+  if (!settings.debugMode && !receiptNumber.match(/^[A-Z]{3}\d{10}$/)) {
     throw new Error('Invalid receipt number format');
   }
 
-  // 模拟数据
+  // 如果启用了调试模式且设置了模拟状态，返回模拟状态
+  if (settings.debugMode && settings.mockCaseStatus) {
+    console.log('Debug mode: Using mock status:', settings.mockCaseStatus);
+    return {
+      status: settings.mockCaseStatus,
+      date: new Date().toISOString().split('T')[0]
+    };
+  }
+
+  // 默认模拟数据（或真实API调用）
+  const mockStatuses = [
+    "Case Was Received",
+    "Biometrics Appointment Was Scheduled", 
+    "Interview Was Scheduled",
+    "Case Was Approved",
+    "New Card Is Being Produced"
+  ];
+
+  // 根据案件编号生成一致的状态（这样同一个编号总是返回相同状态）
+  const statusIndex = receiptNumber.length % mockStatuses.length;
+  
   return {
-    status: "Biometrics Appointment Was Scheduled",
+    status: mockStatuses[statusIndex],
     date: new Date().toISOString().split('T')[0]
   };
 }; 

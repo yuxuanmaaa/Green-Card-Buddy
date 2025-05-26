@@ -7,9 +7,16 @@ export default defineConfig({
     outDir: 'dist',
     rollupOptions: {
       input: {
-        popup: 'index.html'
+        popup: 'index.html',
+        options: 'options.html'
+      },
+      output: {
+        entryFileNames: '[name].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]'
       }
     }
   },
-  publicDir: 'public'
+  publicDir: 'public',
+  base: './'
 }) 

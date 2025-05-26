@@ -4,6 +4,8 @@ import { setData, getData } from '../utils/storage';
 import StatusTracker from '../components/StatusTracker';
 import ReminderTest from '../components/ReminderTest';
 import ReminderList from '../components/ReminderList';
+import SettingsTest from '../components/SettingsTest';
+import { checkAndSendNotifications } from '../services/reminderNotificationService';
 
 const STORAGE_KEY = 'userData';
 
@@ -15,41 +17,65 @@ const Popup: React.FC = () => {
   const [receiptNumber, setReceiptNumber] = useState<string>('');
   const [caseStatus, setCaseStatus] = useState<CaseStatus | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string>('');
 
-  // 页面加载时自动读取编号并查询
   useEffect(() => {
-    const saved = getData<UserData>(STORAGE_KEY);
-    if (saved?.receiptNumber) {
-      setReceiptNumber(saved.receiptNumber);
-      handleFetchStatus(saved.receiptNumber);
-    }
+    loadUserData();
+    // 独立检查并发送通知（不依赖于UI显示）
+    checkAndSendNotifications();
   }, []);
 
-  // 查询状态并保存编号
-  const handleFetchStatus = async (number: string) => {
-    setIsLoading(true);
-    setError(null);
-    setCaseStatus(null);
+  const loadUserData = async () => {
     try {
-      const status = await fetchStatus(number);
+      const userData = await getData<UserData>(STORAGE_KEY);
+      if (userData?.receiptNumber) {
+        setReceiptNumber(userData.receiptNumber);
+        // 自动查询状态
+        await handleStatusCheck(userData.receiptNumber);
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setReceiptNumber(e.target.value);
+    setError('');
+  };
+
+  const handleStatusCheck = async (number?: string) => {
+    const numberToCheck = number || receiptNumber;
+    if (!numberToCheck.trim()) {
+      setError('Please enter a receipt number');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const status = await fetchStatus(numberToCheck);
       setCaseStatus(status);
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch case status');
+    } catch (error) {
+      setError('Failed to fetch case status. Please try again.');
+      console.error('Error fetching status:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // 提交表单
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setData<UserData>(STORAGE_KEY, { receiptNumber });
-    handleFetchStatus(receiptNumber);
+    
+    // 保存用户数据
+    await setData(STORAGE_KEY, { receiptNumber });
+    
+    // 查询状态
+    await handleStatusCheck();
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setReceiptNumber(e.target.value);
+  const openOptionsPage = () => {
+    chrome.runtime.openOptionsPage();
   };
 
   return (
@@ -58,13 +84,35 @@ const Popup: React.FC = () => {
       padding: '20px',
       fontFamily: 'system-ui, -apple-system, sans-serif'
     }}>
-      <h1 style={{ 
-        fontSize: '1.5rem', 
-        marginBottom: '1rem',
-        color: '#2c3e50'
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '1rem'
       }}>
-        GreenCard Buddy
-      </h1>
+        <h1 style={{ 
+          fontSize: '1.5rem', 
+          margin: 0,
+          color: '#2c3e50'
+        }}>
+          GreenCard Buddy
+        </h1>
+        <button
+          onClick={openOptionsPage}
+          style={{
+            padding: '4px 8px',
+            backgroundColor: '#e2e8f0',
+            color: '#4a5568',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontSize: '0.75rem'
+          }}
+          title="Open Settings"
+        >
+          ⚙️ Settings
+        </button>
+      </div>
 
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: '1rem' }}>
@@ -160,6 +208,8 @@ const Popup: React.FC = () => {
           </p>
         )}
       </div>
+
+      <SettingsTest />
 
       <div style={{ marginTop: '1.5rem' }}>
         <ReminderTest />
