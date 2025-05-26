@@ -225,25 +225,74 @@ class RealUscisService {
    * 测试API连接
    */
   async testConnection(): Promise<{ success: boolean; message: string }> {
-    if (!this.isConfigured()) {
-      return {
-        success: false,
-        message: 'API not configured. Please provide client credentials.'
-      };
-    }
-
     try {
-      await this.getAccessToken();
+      console.log('Testing USCIS API connection...');
+      
+      if (!this.isConfigured()) {
+        console.error('USCIS API not configured');
+        return {
+          success: false,
+          message: 'USCIS API not configured. Please provide client credentials in the options page.'
+        };
+      }
+
+      console.log('Getting access token...');
+      const accessToken = await this.getAccessToken();
+      
+      if (!accessToken) {
+        console.error('Failed to get access token');
+        return {
+          success: false,
+          message: 'Failed to get access token. Please check your credentials.'
+        };
+      }
+
+      console.log('Access token obtained successfully');
       return {
         success: true,
         message: 'Successfully connected to USCIS API'
       };
     } catch (error) {
+      console.error('USCIS API connection test failed:', error);
+      let errorMessage = 'Failed to connect to USCIS API';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('operates Monday-Friday')) {
+          errorMessage = 'USCIS Sandbox API is only available Monday-Friday, 7:00 AM - 8:00 PM EST. Please try again during these hours.';
+        } else if (error.message.includes('Authentication expired')) {
+          errorMessage = 'Authentication failed. Please check your credentials.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       return {
         success: false,
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: errorMessage
       };
     }
+  }
+
+  /**
+   * 获取当前访问令牌（用于测试）
+   */
+  getCurrentToken(): string | null {
+    return this.accessToken;
+  }
+
+  /**
+   * 设置访问令牌（用于测试）
+   */
+  setCurrentToken(token: string): void {
+    this.accessToken = token;
+  }
+
+  /**
+   * 清除访问令牌（用于测试）
+   */
+  clearCurrentToken(): void {
+    this.accessToken = null;
+    this.tokenExpiry = 0;
   }
 }
 
