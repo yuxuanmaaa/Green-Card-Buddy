@@ -89,7 +89,9 @@ export const getDaysRemaining = (reminderDate: string): number => {
 };
 
 // 检查是否应该显示提醒（根据设置）
+// 新逻辑：设置N天表示在预约当天及前N天都会显示提醒
 export const shouldShowReminder = async (daysRemaining: number): Promise<boolean> => {
   const settings = await getSettings();
-  return settings.notificationsEnabled && daysRemaining <= settings.reminderDaysBefore;
+  // 如果距离预约日期 <= 设置的天数且 >= 0，则显示提醒
+  return settings.notificationsEnabled && daysRemaining >= 0 && daysRemaining <= settings.reminderDaysBefore;
 }; 
