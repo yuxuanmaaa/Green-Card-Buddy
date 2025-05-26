@@ -28,6 +28,8 @@ const OptionsPage: React.FC = () => {
   const [saveMessage, setSaveMessage] = useState('');
   const [isTestingApi, setIsTestingApi] = useState(false);
   const [apiTestResult, setApiTestResult] = useState<string>('');
+  const [testRunResult, setTestRunResult] = useState<string>('');
+  const [isRunningTest, setIsRunningTest] = useState(false);
   const [testStatus, setTestStatus] = useState<{
     hasFiveDays: boolean;
     hasSuccessAndErrors: boolean;
@@ -179,10 +181,16 @@ const OptionsPage: React.FC = () => {
 
   const handleRunTest = async () => {
     try {
-      await apiTest.runDailyTest();
+      setIsRunningTest(true);
+      setTestRunResult('');
+      const result = await apiTest.runDailyTest();
+      setTestRunResult(result ? '✅ Test completed successfully' : '❌ Test failed');
       await loadTestStatus();
     } catch (error) {
       console.error('Error running test:', error);
+      setTestRunResult('❌ Test failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    } finally {
+      setIsRunningTest(false);
     }
   };
 
@@ -576,19 +584,29 @@ const OptionsPage: React.FC = () => {
             <div style={{ marginBottom: '15px' }}>
               <button
                 onClick={handleRunTest}
+                disabled={isRunningTest}
                 style={{
                   padding: '8px 16px',
-                  backgroundColor: '#4299e1',
+                  backgroundColor: isRunningTest ? '#a0aec0' : '#4299e1',
                   color: 'white',
                   border: 'none',
                   borderRadius: '4px',
-                  cursor: 'pointer',
+                  cursor: isRunningTest ? 'not-allowed' : 'pointer',
                   fontSize: '0.875rem',
                   marginRight: '10px'
                 }}
               >
-                Run Test Now
+                {isRunningTest ? 'Testing...' : 'Run Test Now'}
               </button>
+              {testRunResult && (
+                <span style={{ 
+                  fontSize: '0.875rem',
+                  color: testRunResult.startsWith('✅') ? '#38a169' : '#e53e3e',
+                  marginRight: '10px'
+                }}>
+                  {testRunResult}
+                </span>
+              )}
               <span style={{ 
                 fontSize: '0.875rem',
                 color: '#718096'
