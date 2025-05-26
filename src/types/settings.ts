@@ -10,6 +10,12 @@ export interface AppSettings {
   // 调试模式
   debugMode: boolean;
   mockCaseStatus?: string;
+  
+  // USCIS API 配置
+  useRealApi: boolean;
+  uscisClientId: string;
+  uscisClientSecret: string;
+  uscisSandboxMode: boolean;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -18,7 +24,11 @@ export const DEFAULT_SETTINGS: AppSettings = {
   showBrowserNotifications: true,
   showInAppReminders: true,
   debugMode: false,
-  mockCaseStatus: undefined
+  mockCaseStatus: undefined,
+  useRealApi: false,
+  uscisClientId: '',
+  uscisClientSecret: '',
+  uscisSandboxMode: true
 };
 
 export const MOCK_CASE_STATUSES = [
