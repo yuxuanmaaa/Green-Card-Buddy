@@ -10,5 +10,6 @@ export default defineConfig({
         popup: 'index.html'
       }
     }
-  }
+  },
+  publicDir: 'public'
 }) 

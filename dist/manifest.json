@@ -3,11 +3,24 @@
   "name": "GreenCard Buddy",
   "version": "1.0.0",
   "description": "Track your green card application status",
+  "icons": {
+    "48": "icon48.png"
+  },
   "action": {
-    "default_popup": "index.html"
+    "default_popup": "index.html",
+    "default_icon": "icon48.png"
   },
   "permissions": [
     "storage",
     "notifications"
-  ]
+  ],
+  "host_permissions": [],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "web_accessible_resources": [{
+    "resources": ["icon48.png"],
+    "matches": ["<all_urls>"]
+  }]
 } 

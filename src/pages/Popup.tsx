@@ -3,6 +3,7 @@ import { fetchStatus, CaseStatus } from '../services/uscisService';
 import { setData, getData } from '../utils/storage';
 import StatusTracker from '../components/StatusTracker';
 import ReminderTest from '../components/ReminderTest';
+import ReminderList from '../components/ReminderList';
 
 const STORAGE_KEY = 'userData';
 
@@ -163,6 +164,8 @@ const Popup: React.FC = () => {
       <div style={{ marginTop: '1.5rem' }}>
         <ReminderTest />
       </div>
+
+      <ReminderList />
     </div>
   );
 };
