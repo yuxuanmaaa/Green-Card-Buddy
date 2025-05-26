@@ -3,7 +3,7 @@ export interface Reminder {
   title: string;
   message: string;
 }
-
+ 
 export interface ReminderData {
   biometrics?: Reminder;
   interview?: Reminder;

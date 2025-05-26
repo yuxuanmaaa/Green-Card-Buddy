@@ -25,10 +25,14 @@ const ReminderTest: React.FC = () => {
       return;
     }
 
+    // 创建本地时区的日期，避免时区转换问题
+    const [year, month, day] = selectedDate.split('-').map(Number);
+    const localDate = new Date(year, month - 1, day, 12, 0, 0, 0); // 设置为中午12点
+
     const reminder: Reminder = {
-      date: new Date(selectedDate).toISOString(),
+      date: localDate.toISOString(),
       title: `${selectedType.charAt(0).toUpperCase() + selectedType.slice(1)} Appointment`,
-      message: message || `Your ${selectedType} appointment is scheduled for ${new Date(selectedDate).toLocaleDateString()}`
+      message: message || `Your ${selectedType} appointment is scheduled for ${selectedDate}`
     };
 
     await saveReminder(selectedType, reminder);
@@ -53,7 +57,7 @@ const ReminderTest: React.FC = () => {
       }}>
         Set Reminder
       </h2>
-
+      
       <div style={{ marginBottom: '1rem' }}>
         <select
           value={selectedType}
