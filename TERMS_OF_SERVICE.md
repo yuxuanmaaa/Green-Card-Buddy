@@ -1,6 +1,6 @@
 # GreenCard Buddy Terms of Service
 
-Last Updated: [Current Date]
+Last Updated: 5/30/2025
 
 ## 1. Acceptance of Terms
 
@@ -94,8 +94,7 @@ By using the GreenCard Buddy extension, you agree to comply with these Terms of 
 ## 9. Contact Information
 
 For questions, please contact us through:
-- Email: [Your Contact Email]
-- Support Page: [Support Page URL]
+- Email: yuxuan.maaa@gmail.com
 
 ## 10. Final Terms
 

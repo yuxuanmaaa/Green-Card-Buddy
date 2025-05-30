@@ -1,6 +1,6 @@
 # GreenCard Buddy Privacy Policy
 
-Last Updated: [Current Date]
+Last Updated: 05/30/2025
 
 ## 1. Information Collection
 
@@ -71,7 +71,7 @@ Last Updated: [Current Date]
 ## 7. Contact Information
 
 For any questions, please contact us through:
-- Email: [Your Contact Email]
+- Email: yuxuan.maaa@gmail.com
 - Extension Support Page: [Support Page URL]
 
 ## 8. Consent
